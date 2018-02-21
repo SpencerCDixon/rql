@@ -21,32 +21,40 @@ const (
 	// Identifier
 	IDENT Type = "IDENT"
 
+	// Constants
+	STRING_CONST Type = "STRING_CONST"
+	INT_CONST         = "INT_CONST"
+
 	// Operators
-	ASSIGN   Type = "="
-	LT            = "<"
-	GT            = ">"
+	ASSIGN Type = "="
+	LT          = "<"
+	GT          = ">"
 
 	// Delimiters
 	COMMA     Type = ","
 	SEMICOLON      = ";"
+	LPAREN         = "("
+	RPAREN         = ")"
 
 	// Keywords
-	AND     Type = "AND"
-	AS           = "AS"
-	CREATE       = "CREATE"
-	DELETE       = "DELETE"
-	FROM         = "FROM"
-	INDEX        = "INDEX"
-	INSERT       = "INSERT"
-	INT          = "INT"
-	INTO         = "INTO"
-	ON           = "ON"
-	SELECT       = "SELECT"
-	TABLE        = "TABLE"
-	UPDATE       = "UPDATE"
-	VALUES       = "VALUES"
-	VARCHAR      = "VARCHAR"
-	WHERE        = "WHERE"
+	AND    Type = "AND"
+	AS          = "AS"
+	CREATE      = "CREATE"
+	DELETE      = "DELETE"
+	FROM        = "FROM"
+	INDEX       = "INDEX"
+	INSERT      = "INSERT"
+	INTO        = "INTO"
+	ON          = "ON"
+	SELECT      = "SELECT"
+	TABLE       = "TABLE"
+	UPDATE      = "UPDATE"
+	VALUES      = "VALUES"
+	WHERE       = "WHERE"
+
+	// Column Types
+	VARCHAR = "VARCHAR"
+	INT     = "INT"
 )
 
 var keywords = map[string]Type{
