@@ -19,11 +19,9 @@ const (
 	EOF          = "EOF"
 
 	// Identifier
-	IDENT Type = "IDENT"
-
-	// Constants
-	STRING_CONST Type = "STRING_CONST"
-	INT_CONST         = "INT_CONST"
+	IDENT      Type = "IDENT"
+	STRING_TOK      = "STRING_TOK"
+	INT_TOK         = "INT_TOK"
 
 	// Operators
 	ASSIGN Type = "="
@@ -38,7 +36,6 @@ const (
 
 	// Keywords
 	AND    Type = "AND"
-	AS          = "AS"
 	CREATE      = "CREATE"
 	DELETE      = "DELETE"
 	FROM        = "FROM"
