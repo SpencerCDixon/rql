@@ -1,6 +1,8 @@
 // Package token contains all of the lexical RQL tokens used by the lexer.
 package token
 
+import "strings"
+
 // Type is a human readable form of our Tokens.  It is less efficient than
 // using an iota with ints but makes building the toy DB easier to work with and
 // debug.
@@ -73,6 +75,8 @@ var keywords = map[string]Type{
 }
 
 func LookupIdent(ident string) Type {
+	// allow case insensitivity for keywords
+	ident = strings.ToLower(ident)
 	if tok, ok := keywords[ident]; ok {
 		return tok
 	}

@@ -3,8 +3,6 @@
 package lexer
 
 import (
-	"strings"
-
 	"github.com/spencercdixon/rql/token"
 )
 
@@ -24,7 +22,6 @@ type Lexer struct {
 }
 
 func New(input string) *Lexer {
-	input = strings.ToLower(input)
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
@@ -113,7 +110,7 @@ func (l *Lexer) readString() string {
 	position := l.position + 1
 	for {
 		l.readChar()
-		if l.ch == '"' || l.ch == 0 {
+		if l.ch == '\'' || l.ch == 0 {
 			break
 		}
 	}
