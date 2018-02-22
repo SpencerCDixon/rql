@@ -25,8 +25,8 @@ const (
 
 	// Operators
 	ASSIGN Type = "="
-	LT          = "<"
-	GT          = ">"
+	// LT          = "<"
+	// GT          = ">"
 
 	// Delimiters
 	COMMA     Type = ","
@@ -56,7 +56,6 @@ const (
 
 var keywords = map[string]Type{
 	"and":     AND,
-	"as":      AS,
 	"create":  CREATE,
 	"delete":  DELETE,
 	"from":    FROM,
