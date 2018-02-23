@@ -81,3 +81,18 @@ found below:
 * Buffer
 * Log
 * File
+
+## Milestones
+
+### Create/Insert/Select
+
+```sql
+CREATE TABLE users (
+  id int,
+  name varchar(200),
+  company varchar(100)
+);
+INSERT INTO users VALUES (1, 'Spencer Dixon', 'Rio');
+INSERT INTO users VALUES (1, 'Stefan VanBuren', 'Rio');
+SELECT name FROM users;
+```
