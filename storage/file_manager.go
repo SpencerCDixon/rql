@@ -46,8 +46,11 @@ func NewFileManager(dir string) (*FileManager, error) {
 
 	// Store all databases in ~/rql/dbname
 	dbLoc := filepath.Join(home, "rql", dir)
+	fm := &FileManager{
+		Dir:       dbLoc,
+		openFiles: make(map[string]*os.File),
+	}
 
-	fm := &FileManager{Dir: dbLoc}
 	if ok := exists(dbLoc); !ok {
 		fm.IsNew = true
 		if err := os.MkdirAll(dbLoc, 0777); err != nil {
@@ -57,8 +60,71 @@ func NewFileManager(dir string) (*FileManager, error) {
 	}
 
 	// TODO: remove any 'temp' files in the database from previous boots
-
 	return fm, nil
+}
+
+// TODO: read/write/append.  Should return block numbers
+func (fm *FileManager) Read(blk *Block, content []byte) error {
+	file, err := fm.getFile(blk.FileName)
+	if err != nil {
+		return err
+	}
+	if _, err := file.Read(content); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (fm *FileManager) Write(blk *Block, content []byte) error {
+	file, err := fm.getFile(blk.FileName)
+	if err != nil {
+		return err
+	}
+	offset := int64(blk.BlockNum * BlockSize)
+	if _, err := file.WriteAt(content, offset); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (fm *FileManager) Append(filename string, content []byte) error {
+	return nil
+}
+
+// getFile finds an open descriptor that is being saved or creates a new one
+// with the proper settings if not found.
+func (fm *FileManager) getFile(filename string) (*os.File, error) {
+	if file, ok := fm.openFiles[filename]; ok {
+		return file, nil
+	}
+
+	path := filepath.Join(fm.Dir, filename)
+	// O_SYNC is important because when we write to the file we want to ensure it
+	// 100% happens before moving on and there is no delay.
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_SYNC, 0777)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save for later
+	fm.openFiles[filename] = file
+	return file, nil
+}
+
+// size returns the current block number for a given file.
+func (fm *FileManager) size(filename string) int {
+	file, err := fm.getFile(filename)
+	if err != nil {
+		return 0
+	}
+
+	info, err := file.Stat()
+	if err != nil {
+		return 0
+	}
+
+	bytes := info.Size()
+	return int(bytes / BlockSize)
 }
 
 //-------------
@@ -99,12 +165,15 @@ func NewPage(fm *FileManager) *Page {
 	}
 }
 
+// GetInt gets an int at the given offset of this pages contents.
 func (p *Page) GetInt(offset int) int {
 	end := offset + IntSize
 	return int(binary.LittleEndian.Uint32(p.content[offset:end]))
 }
 
+// SetInt sets an int at the given offset.
 func (p *Page) SetInt(offset int, val int) {
+	// TODO: handle int being bigger than room left in page
 	buf := bytes.NewBuffer(nil)
 	binary.Write(buf, binary.LittleEndian, uint32(val))
 	addition := buf.Bytes()
@@ -116,6 +185,7 @@ func (p *Page) SetInt(offset int, val int) {
 	)
 }
 
+// GetString gets a string at the given offset of this pages contents.
 func (p *Page) GetString(offset int) string {
 	intEnd := offset + IntSize
 	numChars := binary.LittleEndian.Uint32(p.content[offset:intEnd])
@@ -123,7 +193,9 @@ func (p *Page) GetString(offset int) string {
 	return string(p.content[intEnd:strEnd])
 }
 
+// SetString sets a string at the given offset.
 func (p *Page) SetString(offset int, val string) {
+	// TODO: handle string being bigger than room left in page
 	buf := bytes.NewBuffer(nil)
 	strSizeInt := stringSize(val)
 	binary.Write(buf, binary.LittleEndian, uint32(strSizeInt))
@@ -135,6 +207,24 @@ func (p *Page) SetString(offset int, val string) {
 		p.content[:offset],
 		append(addition, p.content[offset+IntSize+strSizeInt:]...)...,
 	)
+}
+
+func (p *Page) Read(blk *Block) {
+	p.fm.Read(blk, p.content)
+}
+func (p *Page) Write(blk *Block) {
+	p.fm.Write(blk, p.content)
+}
+func (p *Page) Append(filename string) Block {
+	p.fm.Append(filename, p.content)
+	// TODO: handle this correctly
+	return Block{}
+}
+
+// reset wipes the contents clean but preserves the underlying storage for use
+// by future writes.
+func (p *Page) reset() {
+	p.content = p.content[:0]
 }
 
 //-------------

@@ -27,7 +27,15 @@ func TestBlockString(t *testing.T) {
 
 func TestFileManager(t *testing.T) {
 	defer cleanUp("example")
-	NewFileManager("example")
+	fm, err := NewFileManager("example")
+	testutil.Ok(t, err)
+	p := NewPage(fm)
+	blk1 := &Block{FileName: "users.tbl", BlockNum: 0}
+	p.Read(blk1)
+	p.SetString(0, "hello")
+	p.Write(blk1)
+	str := p.GetString(0)
+	testutil.Equals(t, "hello", str)
 }
 
 func TestPageInt(t *testing.T) {
