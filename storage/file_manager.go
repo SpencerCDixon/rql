@@ -219,6 +219,7 @@ func (p *Page) SetString(offset int, val string) {
 }
 
 func (p *Page) Read(blk *Block) {
+	p.reset()
 	p.fm.Read(blk, p.content)
 }
 func (p *Page) Write(blk *Block) {

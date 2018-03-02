@@ -26,31 +26,43 @@ func TestBlockString(t *testing.T) {
 }
 
 func TestFileManager(t *testing.T) {
-	// defer cleanUp("example")
+	defer cleanUp("example")
 	fm, err := NewFileManager("example")
 	testutil.Ok(t, err)
 	p := NewPage(fm)
+
+	// set up blocks in various parts of the file
 	blk1 := &Block{FileName: "users.tbl", BlockNum: 0}
 	blk2 := &Block{FileName: "users.tbl", BlockNum: 2}
+
+	// read/write string and int
 	p.Read(blk1)
 	p.SetString(0, "hello")
+	p.SetInt(250, 42)
 	p.Write(blk1)
-	str := p.GetString(0)
-	testutil.Equals(t, "hello", str)
+	hello := p.GetString(0)
+	life := p.GetInt(250)
+	testutil.Equals(t, "hello", hello)
+	testutil.Equals(t, 42, life)
 
-	p.reset()
+	// read/write second block
 	p.Read(blk2)
+	p.SetString(0, "hello")
 	p.SetInt(100, 42)
 	p.Write(blk2)
+	hello = p.GetString(0)
+	life = p.GetInt(100)
+	testutil.Equals(t, "hello", hello)
+	testutil.Equals(t, 42, life)
 
-	p.reset()
+	// confirm our first block still persisted
 	p.Read(blk1)
-	str = p.GetString(0)
-	testutil.Equals(t, "hello", str)
+	hello = p.GetString(0)
+	testutil.Equals(t, "hello", hello)
 
-	p.reset()
+	// confirm our second block persisted
 	p.Read(blk2)
-	life := p.GetInt(100)
+	life = p.GetInt(100)
 	testutil.Equals(t, 42, life)
 }
 
