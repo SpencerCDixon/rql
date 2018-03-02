@@ -69,7 +69,8 @@ func (fm *FileManager) Read(blk *Block, content []byte) error {
 	if err != nil {
 		return err
 	}
-	if _, err := file.Read(content); err != nil {
+	offset := blk.BlockNum * BlockSize
+	if _, err := file.ReadAt(content, int64(offset)); err != nil {
 		return err
 	}
 	return nil

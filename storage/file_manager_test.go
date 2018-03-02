@@ -40,8 +40,18 @@ func TestFileManager(t *testing.T) {
 
 	p.reset()
 	p.Read(blk2)
-	p.SetInt(0, 100)
+	p.SetInt(100, 42)
 	p.Write(blk2)
+
+	p.reset()
+	p.Read(blk1)
+	str = p.GetString(0)
+	testutil.Equals(t, "hello", str)
+
+	p.reset()
+	p.Read(blk2)
+	life := p.GetInt(100)
+	testutil.Equals(t, 42, life)
 }
 
 func TestPageInt(t *testing.T) {
