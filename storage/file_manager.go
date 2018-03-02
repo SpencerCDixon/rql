@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
 )
 
 // FileManager is the component responsible for interacting with the operating
@@ -63,7 +64,6 @@ func NewFileManager(dir string) (*FileManager, error) {
 	return fm, nil
 }
 
-// TODO: read/write/append.  Should return block numbers
 func (fm *FileManager) Read(blk *Block, content []byte) error {
 	file, err := fm.getFile(blk.FileName)
 	if err != nil {
@@ -87,8 +87,16 @@ func (fm *FileManager) Write(blk *Block, content []byte) error {
 	return nil
 }
 
-func (fm *FileManager) Append(filename string, content []byte) error {
-	return nil
+func (fm *FileManager) Append(filename string, content []byte) (*Block, error) {
+	newBlkNum := fm.size(filename)
+	blk := &Block{FileName: filename, BlockNum: newBlkNum}
+
+	err := fm.Write(blk, content)
+	if err != nil {
+		return nil, errors.Wrap(err, "writing content")
+	}
+
+	return blk, nil
 }
 
 // getFile finds an open descriptor that is being saved or creates a new one
@@ -103,7 +111,7 @@ func (fm *FileManager) getFile(filename string) (*os.File, error) {
 	// 100% happens before moving on and there is no delay.
 	file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_SYNC, 0777)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "opening file")
 	}
 
 	// Save for later
@@ -215,16 +223,16 @@ func (p *Page) Read(blk *Block) {
 func (p *Page) Write(blk *Block) {
 	p.fm.Write(blk, p.content)
 }
-func (p *Page) Append(filename string) Block {
-	p.fm.Append(filename, p.content)
-	// TODO: handle this correctly
-	return Block{}
+func (p *Page) Append(filename string) (*Block, error) {
+	return p.fm.Append(filename, p.content)
 }
 
 // reset wipes the contents clean but preserves the underlying storage for use
 // by future writes.
 func (p *Page) reset() {
-	p.content = p.content[:0]
+	for i := range p.content {
+		p.content[i] = 0
+	}
 }
 
 //-------------
