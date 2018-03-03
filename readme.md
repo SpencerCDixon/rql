@@ -59,28 +59,21 @@ found below:
 <CreateIndex> := CREATE INDEX IDENT ON IDENT ( <Field> )
 ``` 
 
-## Major Components Todo
+## Major Components
 
-- [ ] Token/Grammar definitions
-- [ ] Lexer
-- [ ] Parser (Recursive descent)
-- [ ] Planner
-- [ ] Query Optimizer
-- [ ] Server
-- [ ] Driver
-
-## Parts of the Server
-
-* Remote
-* Planner
-* Parse
-* Query
-* Metadata
-* Record
-* Transaction
-* Buffer
-* Log
-* File
+* [ ] CLI
+* [ ] Remote
+* [ ] Planner
+* [ ] Parse
+* [x] Lexer
+* [ ] Query
+* [ ] Metadata
+* [ ] Record
+* [ ] Transaction
+* [ ] Buffer
+* [ ] Tracer/Stats
+* [x] Log
+* [x] File
 
 ## Milestones
 

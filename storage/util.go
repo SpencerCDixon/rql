@@ -18,3 +18,17 @@ func exists(path string) bool {
 func stringSize(s string) int {
 	return len(s)
 }
+
+// ByteSizeForVal determines how many bytes the given val will take up when
+// saved in binary format in the RQL DBMS. Only int/string are currently
+// supported but in the future other types may be added.
+func ByteSizeForVal(val interface{}) int {
+	switch val := val.(type) {
+	case int:
+		return IntSize
+	case string:
+		return stringSize(val) + IntSize
+	default:
+		return 0
+	}
+}

@@ -21,14 +21,17 @@ type FileManager struct {
 	openFiles map[string]*os.File
 }
 
-func NewFileManager(dir string) (*FileManager, error) {
+// NewFileManager returns a new file manager.  It checks for the existence of
+// the database 'db' and if none exists it will create the necessary
+// directories/files. TODO: tmp file removal.
+func NewFileManager(db string) (*FileManager, error) {
 	home, err := homedir.Dir()
 	if err != nil {
 		return nil, err
 	}
 
 	// Store all databases in ~/rql/dbname
-	dbLoc := filepath.Join(home, "rql", dir)
+	dbLoc := filepath.Join(home, "rql", db)
 	fm := &FileManager{
 		Dir:       dbLoc,
 		openFiles: make(map[string]*os.File),
@@ -58,6 +61,8 @@ func (fm *FileManager) Read(blk *Block, content []byte) error {
 	return nil
 }
 
+// Write writes the content bytes to the given blk.  If the file does not exist
+// for the block a new one will be created and saved in the managers pool.
 func (fm *FileManager) Write(blk *Block, content []byte) error {
 	file, err := fm.getFile(blk.FileName)
 	if err != nil {
@@ -70,11 +75,17 @@ func (fm *FileManager) Write(blk *Block, content []byte) error {
 	return nil
 }
 
+// Append appends content to the filename returning the Block that the bytes
+// were written to.
 func (fm *FileManager) Append(filename string, content []byte) (*Block, error) {
-	newBlkNum := fm.size(filename)
+	newBlkNum, err := fm.Size(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	blk := NewBlock(filename, newBlkNum)
 
-	err := fm.Write(blk, content)
+	err = fm.Write(blk, content)
 	if err != nil {
 		return nil, errors.Wrap(err, "writing content")
 	}
@@ -102,18 +113,18 @@ func (fm *FileManager) getFile(filename string) (*os.File, error) {
 	return file, nil
 }
 
-// size returns the current block number for a given file.
-func (fm *FileManager) size(filename string) int {
+// Size returns the current block number for a given file.
+func (fm *FileManager) Size(filename string) (int, error) {
 	file, err := fm.getFile(filename)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
 	info, err := file.Stat()
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
 	bytes := info.Size()
-	return int(bytes / BlockSize)
+	return int(bytes / BlockSize), nil
 }
