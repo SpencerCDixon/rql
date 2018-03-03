@@ -71,10 +71,14 @@ func (fm *FileManager) Write(blk *Block, content []byte) error {
 }
 
 func (fm *FileManager) Append(filename string, content []byte) (*Block, error) {
-	newBlkNum := fm.size(filename)
+	newBlkNum, err := fm.Size(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	blk := NewBlock(filename, newBlkNum)
 
-	err := fm.Write(blk, content)
+	err = fm.Write(blk, content)
 	if err != nil {
 		return nil, errors.Wrap(err, "writing content")
 	}
@@ -102,18 +106,18 @@ func (fm *FileManager) getFile(filename string) (*os.File, error) {
 	return file, nil
 }
 
-// size returns the current block number for a given file.
-func (fm *FileManager) size(filename string) int {
+// Size returns the current block number for a given file.
+func (fm *FileManager) Size(filename string) (int, error) {
 	file, err := fm.getFile(filename)
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
 	info, err := file.Stat()
 	if err != nil {
-		return 0
+		return 0, err
 	}
 
 	bytes := info.Size()
-	return int(bytes / BlockSize)
+	return int(bytes / BlockSize), nil
 }
