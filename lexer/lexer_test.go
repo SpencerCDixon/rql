@@ -89,7 +89,6 @@ SELECT name FROM users;
 
 	for _, tt := range tokens {
 		tok := l.NextToken()
-		t.Log(tt.expectedLiteral)
 		testutil.Equals(t, tt.expectedType, tok.Type)
 		testutil.Equals(t, tt.expectedLiteral, tok.Literal)
 	}

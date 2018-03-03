@@ -3,20 +3,20 @@
 // or not? etc.
 package planner
 
-type Transaction struct {}
-type QueryData struct {}
+// type Transaction struct {}
+// type QueryData struct {}
 
-type Planner struct {
-	qp QueryPlanner
-	up UpdatePlanner
-}
+// type Planner struct {
+// qp QueryPlanner
+// up UpdatePlanner
+// }
 
-type QueryPlanner interface {
-	CreatePlan(data QueryData, tx Transaction)
-}
+// type QueryPlanner interface {
+// CreatePlan(data QueryData, tx Transaction)
+// }
 
-type UpdatePlanner interface {
-	ExecuteInsert(data InsertData, tx Transaction)
-	ExecuteCreateTable(data CreateTableData, tx Transaction)
-	// TODO: ... DELETE/MODIFY/INDEX ... 
-}
+// type UpdatePlanner interface {
+// ExecuteInsert(data InsertData, tx Transaction)
+// ExecuteCreateTable(data CreateTableData, tx Transaction)
+// // TODO: ... DELETE/MODIFY/INDEX ...
+// }
