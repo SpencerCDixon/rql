@@ -123,7 +123,7 @@ func (lm *LogManager) appendValue(lr interface{}) {
 	case string:
 		lm.page.SetString(lm.currentPos, lr)
 	default:
-		// TODO:
+		panic("Unknown type to append to log record")
 	}
 	lm.currentPos += ByteSizeForVal(lr)
 }
