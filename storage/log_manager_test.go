@@ -6,14 +6,6 @@ import (
 	"github.com/spencercdixon/rql/testutil"
 )
 
-func TestNewLogManager(t *testing.T) {
-	defer cleanUp("logmanager")
-	lm := newLogManager(t, "logmanager")
-
-	testutil.Equals(t, 4, lm.size(10))
-	testutil.Equals(t, 9, lm.size("hello"))
-}
-
 func TestAppendingLogManager(t *testing.T) {
 	defer cleanUp("logmanager")
 	lm := newLogManager(t, "logmanager")

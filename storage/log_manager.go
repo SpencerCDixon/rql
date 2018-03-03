@@ -67,8 +67,7 @@ func (lm *LogManager) FlushLSN(lsn int) {
 func (lm *LogManager) Append(lrs []interface{}) int {
 	recordSize := IntSize
 	for _, lr := range lrs {
-		c := lm.size(lr)
-		recordSize += c
+		recordSize += ByteSizeForVal(lr)
 	}
 
 	// Not enough room, write to disk, and add room.
@@ -100,10 +99,10 @@ func (lm *LogManager) Append(lrs []interface{}) int {
 // accessing records.
 func (lm *LogManager) Iterator() *RecordIterator {
 	lm.Flush()
-	iter := NewRecordIterator(lm.currentBlk, lm)
-	return iter
+	return NewRecordIterator(lm.currentBlk, lm)
 }
 
+// Append Utils
 func (lm *LogManager) appendNewBlock() error {
 	lm.setLastRecordPosition(0)
 
@@ -117,7 +116,6 @@ func (lm *LogManager) appendNewBlock() error {
 
 	return nil
 }
-
 func (lm *LogManager) appendValue(lr interface{}) {
 	switch lr := lr.(type) {
 	case int:
@@ -127,9 +125,10 @@ func (lm *LogManager) appendValue(lr interface{}) {
 	default:
 		// TODO:
 	}
-	lm.currentPos += lm.size(lr)
+	lm.currentPos += ByteSizeForVal(lr)
 }
 
+// Seek Utils
 func (lm *LogManager) getLastRecordPosition() int {
 	return lm.page.GetInt(lm.LastRecordPos)
 }
@@ -151,27 +150,11 @@ func (lm *LogManager) finalizeRecord() error {
 	return nil
 }
 
-// currentLSN returns the current Log Sequence Number.  Currently, the LSN is
+// currentLSN returns the current Log Sequence Number.  The LSN is
 // based on the block number but in the future this would be a good place to
-// optimize.
+// optimize and have a more accurate LSN abstraction.
 func (lm *LogManager) currentLSN() int {
 	return lm.currentBlk.BlockNum
-}
-
-// size returns how many bytes writing a log record value will be.  Currently,
-// only int/strings are supported in our log files but we may add other types in
-// the future.
-// TODO: this should really just live in the file manager/one place.
-// SizeForVal() or ByteSizeForValue() somewhere
-func (lm *LogManager) size(obj interface{}) int {
-	switch obj := obj.(type) {
-	case int:
-		return IntSize
-	case string:
-		return stringSize(obj) + IntSize
-	default:
-		return 0
-	}
 }
 
 //---------------
