@@ -1,10 +1,18 @@
-# RQL - Rio Query Language
+## RQL - Rio Query Language
+
+[![Build Status](https://travis-ci.org/SpencerCDixon/rql.svg?branch=master)](https://travis-ci.org/SpencerCDixon/rql)
 
 This is a toy DBMS built purely for educational purposes.  It implements a small
 subset of MySQL/Postgresql.  Definitely DO NOT use this for anything real.  100%
 the worst database ever built.
 
-## RQL Grammar
+**Table Of Contents**
+
+* [Grammar](#rql-grammar)
+* [Components](#major-components)
+* [Milestones](#milestones)
+
+### RQL Grammar
 
 Below is the basic grammer used in the RQL DBMS.  The characters `[`, `]`, and
 `|` are not used as delimeters in the language so we use them as punctuation to
@@ -59,7 +67,7 @@ found below:
 <CreateIndex> := CREATE INDEX IDENT ON IDENT ( <Field> )
 ``` 
 
-## Major Components
+### Major Components
 
 * [ ] CLI
 * [ ] Remote
@@ -75,9 +83,9 @@ found below:
 * [x] Log
 * [x] File
 
-## Milestones
+### Milestones
 
-### Create/Insert/Select
+#### Create/Insert/Select 
 
 ```sql
 CREATE TABLE users (
