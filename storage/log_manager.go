@@ -62,7 +62,8 @@ func (lm *LogManager) FlushLSN(lsn int) {
 func (lm *LogManager) Append(lrs []interface{}) int {
 	recordSize := IntSize
 	for _, lr := range lrs {
-		recordSize += lm.size(lr)
+		c := lm.size(lr)
+		recordSize += c
 	}
 
 	// Not enough room, write to disk, and add room.
@@ -183,13 +184,13 @@ func NewLogRecord(page *Page, pos int) *LogRecord {
 
 func (lr *LogRecord) NextInt() int {
 	nextInt := lr.page.GetInt(lr.pos)
-	lr.pos = IntSize
+	lr.pos += IntSize
 	return nextInt
 }
 
 func (lr *LogRecord) NextString() string {
 	nextStr := lr.page.GetString(lr.pos)
-	lr.pos = stringSize(nextStr) + IntSize
+	lr.pos += stringSize(nextStr) + IntSize
 	return nextStr
 }
 
