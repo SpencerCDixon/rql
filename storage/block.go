@@ -8,6 +8,7 @@ type Block struct {
 	BlockNum int
 }
 
+// NewBlock returns a new block.
 func NewBlock(filename string, blockNum int) *Block {
 	return &Block{FileName: filename, BlockNum: blockNum}
 }

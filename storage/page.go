@@ -5,12 +5,15 @@ import (
 	"encoding/binary"
 )
 
-// Pages are used by the file manager to read and write blocks of bytes.
+// Page is used by the file manager to read and write blocks of bytes.
 type Page struct {
 	content []byte
 	fm      *FileManager
 }
 
+// NewPage allocates a slice of bytes to be used for reading/writing Blocks of
+// memory.  The memory of a page get's reused to help optimize space
+// constraints.
 func NewPage(fm *FileManager) *Page {
 	content := make([]byte, BlockSize, BlockSize)
 

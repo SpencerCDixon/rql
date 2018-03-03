@@ -45,20 +45,25 @@ func NewLogManager(filename string, fm *FileManager) (*LogManager, error) {
 }
 
 // Flush takes our log record contents and writes them to disk.  Flush can be
-// called for two reasons:
-
-//   1. The page is full and needs to be written so more records can be recorded
-//   2. Other parts of the system need the logs to be recorded before progressing
+// called for two reasons:  1. The page is full and needs to be written so more
+// records can be recorded 2. Other parts of the system need the logs to be
+// recorded before progressing
 func (lm *LogManager) Flush() {
 	lm.page.Write(lm.currentBlk)
 }
+
+// FlushLSN will only flush if the given lsn is bigger than the currently
+// written LSN.  If the lsn is smaller it means that those log records have
+// already been written to disk.
 func (lm *LogManager) FlushLSN(lsn int) {
 	if lsn >= lm.currentLSN() {
 		lm.Flush()
 	}
 }
 
-// Append
+// Append determines the size of the log records and appends them in memory.
+// If there is not enough space it will flush the contents to disk and add a new
+// block for the records.
 func (lm *LogManager) Append(lrs []interface{}) int {
 	recordSize := IntSize
 	for _, lr := range lrs {
@@ -169,12 +174,20 @@ func (lm *LogManager) size(obj interface{}) int {
 	}
 }
 
-// Record/Helpers
+//---------------
+// Log Records
+//---------------
+
+// LogRecord is a basic record which gives primitives to get strings/ints from
+// the record.  Meaningful log records will be built on top of this.  Consumers
+// must know the correct order to retrieve values or return values will be
+// garbage.
 type LogRecord struct {
 	page *Page
 	pos  int
 }
 
+// NewLogRecord creates a log record at a given pos for a page of memory.
 func NewLogRecord(page *Page, pos int) *LogRecord {
 	return &LogRecord{
 		page: page,
@@ -182,18 +195,24 @@ func NewLogRecord(page *Page, pos int) *LogRecord {
 	}
 }
 
+// NextInt returns the next int in the log record and progresses the pointer.
 func (lr *LogRecord) NextInt() int {
 	nextInt := lr.page.GetInt(lr.pos)
 	lr.pos += IntSize
 	return nextInt
 }
 
+// NextString returns the next string in the log record and progresses the
+// pointer.
 func (lr *LogRecord) NextString() string {
 	nextStr := lr.page.GetString(lr.pos)
 	lr.pos += stringSize(nextStr) + IntSize
 	return nextStr
 }
 
+// RecordIterator allows clients to consume a LogRecord in a familiar Next()
+// interface.  It uses a LIFO strategy to make consuming records as easy as
+// possible.
 type RecordIterator struct {
 	blk           *Block
 	page          *Page
@@ -201,10 +220,13 @@ type RecordIterator struct {
 	currentRecord int
 }
 
+// NewRecordIterator returns a RecordIterator that is ready to start being
+// consumed.  It creates a new page of memory and sets the current records
+// position.
 func NewRecordIterator(blk *Block, lm *LogManager) *RecordIterator {
 	ri := &RecordIterator{
 		blk:  blk,
-		page: NewPage(lm.fm),
+		page: NewPage(lm.fm), // TODO: I really don't like this...
 		lm:   lm,
 	}
 
@@ -213,10 +235,16 @@ func NewRecordIterator(blk *Block, lm *LogManager) *RecordIterator {
 	return ri
 }
 
+// Next can be true in two circumstances:
+//  1. Our pointer to the next record is not 0 (zero being the end of the log file)
+//  2. The BlockNum is greater than 0 (meaning we have more blocks to cycle through)
 func (ri *RecordIterator) Next() bool {
 	return ri.currentRecord > 0 || ri.blk.BlockNum > 0
 }
 
+// Value returns the current LogRecord the iterator is located at.  When getting
+// to the last record in a block (0) the iterator will automatically move on to
+// the next block and continue iterating.
 func (ri *RecordIterator) Value() *LogRecord {
 	// We got to the end of the current block since the linked chain goes from the
 	// front to end of the file. Load in a new block and continue
